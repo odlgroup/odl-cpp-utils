@@ -1,5 +1,9 @@
 #pragma once
 
+// Disable deprecated API
+#include <numpy/numpyconfig.h>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
 #include "boost/python/numeric.hpp"
 #include <exception>
 #include <Python.h>
@@ -13,8 +17,8 @@ template <typename T>
 int getEnum();
 
 #define makeDefinition(TYPE, NAME) \
-	template <>                    \
-	int getEnum<TYPE>() { return NAME; }
+    template <>                    \
+    int getEnum<TYPE>() { return NAME; }
 makeDefinition(float, NPY_FLOAT);
 makeDefinition(double, NPY_DOUBLE);
 makeDefinition(long double, NPY_LONGDOUBLE);
@@ -32,14 +36,13 @@ makeDefinition(unsigned long long, NPY_ULONGLONG);
 #undef makeDefinition
 
 template <typename T>
-bool isType(const numeric::array& data)
-{
+bool isType(const numeric::array& data) {
 	PyArrayObject* a = (PyArrayObject*)data.ptr();
 
 	if (a == NULL)
 		return false;
 
-	return a->descr->type_num == getEnum<T>();
+	return PyArray_TYPE(a) == getEnum<T>();
 }
 
 struct EigenSize {
@@ -95,8 +98,7 @@ EigenSize getSizeGeneral(const object& data) {
 }
 
 template <typename T>
-numeric::array makeArray(size_t size)
-{
+numeric::array makeArray(size_t size) {
 	npy_intp dims[1] = { size };
 	object obj(handle<>(PyArray_SimpleNew(1, dims, getEnum<T>())));
 	numeric::array arr = extract<numeric::array>(obj);
@@ -104,8 +106,7 @@ numeric::array makeArray(size_t size)
 }
 
 template <typename T>
-numeric::array makeArray(size_t size1, size_t size2)
-{
+numeric::array makeArray(size_t size1, size_t size2) {
 	npy_intp dims[2] = { size1, size2 };
 	object obj(handle<>(PyArray_SimpleNew(2, dims, getEnum<T>())));
 	numeric::array arr = extract<numeric::array>(obj);
@@ -120,10 +121,10 @@ T* getDataPtr(const numeric::array& data) {
 		throw std::invalid_argument("Could not get NP array.");
 
 	//Check that type is correct
-	if (a->descr->type_num != getEnum<T>())
-		throw std::invalid_argument(("Expected element type " + std::string(typeid(T).name()) + " " + a->descr->type).c_str());
+	if (!isType<T>(data))
+		throw std::invalid_argument(("Expected element type " + std::string(typeid(T).name()) + " " + PyArray_DESCR(a)->type).c_str());
 
-	T* p = (T*)a->data;
+	T* p = (T*)PyArray_DATA(a);
 
 	return p;
 }
