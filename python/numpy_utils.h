@@ -4,7 +4,9 @@
 #include <numpy/numpyconfig.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
-#include "boost/python/numeric.hpp"
+#include <boost/python.hpp>
+#include <boost/python/tuple.hpp>
+#include <boost/python/numeric.hpp>
 #include <exception>
 #include <Python.h>
 #include <numpy/arrayobject.h>
@@ -50,7 +52,7 @@ struct EigenSize {
 };
 
 EigenSize getSize(const numeric::array& data) {
-	const tuple& shape = extract<tuple>(data.attr("shape"));
+	const tuple shape = extract<tuple>(data.attr("shape"));
 	const size_t datadimension = len(shape);
 	size_t dimension = datadimension;
 
@@ -62,8 +64,8 @@ EigenSize getSize(const numeric::array& data) {
 	else if (datadimension == 2) {
 		dataRows = extract<int>(shape[0]);
 		dataCols = extract<int>(shape[1]);
-
-		if (dataRows == 1 || dataCols == 1)
+		
+        if (dataRows == 1 || dataCols == 1)
 			dimension = 1;
 	}
 	else

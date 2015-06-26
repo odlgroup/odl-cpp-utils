@@ -143,3 +143,45 @@ numeric::array copyOutput(const EigenArray& data) {
 
     return extract<numeric::array>(arr.copy()); //Copy to pass ownership
 }
+
+template<typename EigenType>
+struct eigenarray_from_python_object {
+    eigenarray_from_python_object() {
+        converter::registry::push_back(&convertible, &construct, type_id<EigenType>());
+    }
+
+    static void* convertible(PyObject* obj_ptr) {
+        auto ext = extract<numeric::array>(obj_ptr);
+        if (!ext.check()) return 0;
+        return obj_ptr;
+    }
+
+    static void construct(PyObject* obj_ptr, converter::rvalue_from_python_stage1_data* data) {
+        void* storage = ((converter::rvalue_from_python_storage<EigenType>*)data)->storage.bytes;
+        object obj = extract<object>(obj_ptr);
+        new (storage)EigenType(copyInput<EigenType>(obj));
+        data->convertible = storage;
+    }
+};
+
+template<typename T> 
+void create_eigen_converter() {
+    eigenarray_from_python_object<T>();
+}
+
+void export_eigen_conv() {
+    create_eigen_converter<Eigen::Array2i>();
+    create_eigen_converter<Eigen::Array3i>();
+
+    create_eigen_converter<Eigen::Array2d>();
+    create_eigen_converter<Eigen::Array3d>();
+
+    create_eigen_converter<Eigen::ArrayXd>();
+    create_eigen_converter<Eigen::ArrayXi>();
+
+    create_eigen_converter<Eigen::Vector2i>();
+    create_eigen_converter<Eigen::Vector3i>();
+
+    create_eigen_converter<Eigen::Vector2d>();
+    create_eigen_converter<Eigen::Vector3d>();
+}
