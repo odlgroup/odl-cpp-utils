@@ -164,9 +164,24 @@ struct eigenarray_from_python_object {
     }
 };
 
-template<typename T> 
+template<typename EigenType>
+struct eigenarray_to_python_object
+{
+
+  eigenarray_to_python_object(){
+    to_python_converter<EigenType, eigenarray_to_python_object<EigenType>>();
+  }
+
+  static PyObject* convert(const EigenType& v)
+  {
+    return copyOutput(v).ptr();
+  }
+};
+
+template<typename EigenType> 
 void create_eigen_converter() {
-    eigenarray_from_python_object<T>();
+    eigenarray_from_python_object<EigenType>();
+    eigenarray_to_python_object<EigenType>();
 }
 
 void export_eigen_conv() {
@@ -178,6 +193,9 @@ void export_eigen_conv() {
 
     create_eigen_converter<Eigen::ArrayXd>();
     create_eigen_converter<Eigen::ArrayXi>();
+
+    create_eigen_converter<Eigen::ArrayXXd>();
+    create_eigen_converter<Eigen::ArrayXXi>();
 
     create_eigen_converter<Eigen::Vector2i>();
     create_eigen_converter<Eigen::Vector3i>();
