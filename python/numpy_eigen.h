@@ -53,7 +53,7 @@ bool isPtrCompatible(const numeric::array& numpyArray) {
         return false;
 
     //TODO: use actual order of numpyArray
-    if (!EigenArray::IsRowMajor)
+	if (!EigenArray::IsRowMajor)
         return false;
 
     return true;
@@ -89,6 +89,9 @@ void copyElements(const EigenSize& size, const object& in, EigenArray& out) {
 
 template <typename EigenArray>
 EigenArray copyInput(const object& data) {
+	static const int rowsAtCompile = EigenArray::RowsAtCompileTime;
+	static const int colsAtCompile = EigenArray::ColsAtCompileTime;
+	static const bool staticSize = (rowsAtCompile != Eigen::Dynamic) && (colsAtCompile != Eigen::Dynamic);
     typedef typename EigenArray::Scalar Scalar;
     typedef typename Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorDoubleArray;
 
@@ -100,8 +103,10 @@ EigenArray copyInput(const object& data) {
 
         EigenSize size = getSize(dataArray);
         verifySize<EigenArray>(size);
-
-        EigenArray out(size.dataRows, size.dataCols);
+		
+		EigenArray out;
+		if (!staticSize)
+			out.resize(size.dataRows, size.dataCols);
 
         if (isPtrCompatible<EigenArray>(dataArray)) {
             //Use raw buffers if possible
@@ -121,7 +126,9 @@ EigenArray copyInput(const object& data) {
         EigenSize size = getSizeGeneral(data);
         verifySize<EigenArray>(size);
 
-        EigenArray out(size.dataRows, size.dataCols);
+		EigenArray out;
+		if (!staticSize)
+			out.resize(size.dataRows, size.dataCols);
 
         copyElements(size, data, out);
 
