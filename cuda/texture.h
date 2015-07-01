@@ -41,6 +41,54 @@ struct BoundTexture1D {
 };
 
 template <typename T>
+struct BoundTexture2D {
+    cudaArray_t arr;
+    cudaTextureObject_t tex;
+    int2 size;
+
+    BoundTexture2D(const T* source,
+                   const int2 size,
+                   const cudaTextureAddressMode addressMode,
+                   const cudaTextureFilterMode filterMode,
+                   const cudaTextureReadMode readMode = cudaReadModeElementType)
+        : size(size) {
+        const cudaExtent extent = make_cudaExtent(size.x, size.y, 0);
+
+        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
+        cudaMalloc3DArray(&arr, &channelDesc, extent);
+
+        cudaMemcpy3DParms copyParams = {};
+        copyParams.srcPtr = make_cudaPitchedPtr((void*)source, extent.width * sizeof(T),
+                                                extent.width, extent.height);
+        copyParams.dstArray = arr;
+        copyParams.extent = extent;
+        copyParams.kind = cudaMemcpyDeviceToDevice;
+        cudaMemcpy3D(&copyParams);
+
+        // create texture object
+        cudaResourceDesc resourceDescriptor = {};
+        resourceDescriptor.resType = cudaResourceTypeArray;
+        resourceDescriptor.res.array.array = arr;
+
+        // Setup a texture descriptor
+        cudaTextureDesc textureDescriptor = {};
+        textureDescriptor.addressMode[0] = addressMode;
+        textureDescriptor.addressMode[1] = addressMode;
+        textureDescriptor.filterMode = filterMode;
+        textureDescriptor.readMode = readMode;
+        textureDescriptor.normalizedCoords = 0;
+
+        // Create the texture object
+        cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL);
+    }
+
+    ~BoundTexture2D() {
+        cudaDestroyTextureObject(tex);
+        cudaFreeArray(arr);
+    }
+};
+
+template <typename T>
 struct BoundTexture3D {
     cudaArray_t arr;
     cudaTextureObject_t tex;

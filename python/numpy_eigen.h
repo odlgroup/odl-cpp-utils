@@ -44,7 +44,7 @@ bool iscontiguous(const numeric::array& arr) {
 
 template <typename EigenArray>
 bool isPtrCompatible(const numeric::array& numpyArray) {
-	typedef typename EigenArray::Scalar Scalar;
+    typedef typename EigenArray::Scalar Scalar;
 
     if (!isType<Scalar>(numpyArray))
         return false;
@@ -52,11 +52,18 @@ bool isPtrCompatible(const numeric::array& numpyArray) {
     if (!iscontiguous(numpyArray))
         return false;
 
-    //TODO: use actual order of numpyArray
-    if (!EigenArray::IsRowMajor)
-        return false;
+	int flags = PyArray_FLAGS((PyArrayObject*)numpyArray.ptr());
+	if (!(flags & NPY_ARRAY_ALIGNED)) {
+		return false;
+	}
 
-    return true;
+	//Verify order
+	if ((flags & NPY_ARRAY_F_CONTIGUOUS) && !EigenArray::IsRowMajor)
+        return true;
+	else if ((flags & NPY_ARRAY_C_CONTIGUOUS) && EigenArray::IsRowMajor)
+		return true;
+	else
+		return false;
 }
 
 template <typename EigenArray>
@@ -65,7 +72,7 @@ Eigen::Map<EigenArray> mapInput(numeric::array data) {
 
     EigenSize size = getSize(data);
     verifySize<EigenArray>(size);
-		if (isPtrCompatible<EigenArray>(data)) {
+    if (isPtrCompatible<EigenArray>(data)) {
         return Eigen::Map<EigenArray>(getDataPtr<Scalar>(data), size.dataRows, size.dataCols);
     } else {
         throw std::invalid_argument(std::string("Array is not pointer compatible with Eigen Array"));
@@ -89,8 +96,12 @@ void copyElements(const EigenSize& size, const object& in, EigenArray& out) {
 
 template <typename EigenArray>
 EigenArray copyInput(const object& data) {
+    static const int rowsAtCompile = EigenArray::RowsAtCompileTime;
+    static const int colsAtCompile = EigenArray::ColsAtCompileTime;
+    static const bool staticSize = (rowsAtCompile != Eigen::Dynamic) && (colsAtCompile != Eigen::Dynamic);
     typedef typename EigenArray::Scalar Scalar;
-    typedef typename Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorDoubleArray;
+	typedef typename Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorDoubleArray;
+	typedef typename Eigen::Array<long, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorLongArray;
 
     extract<numeric::array> asNumeric(data);
     if (asNumeric.check()) {
@@ -101,17 +112,26 @@ EigenArray copyInput(const object& data) {
         EigenSize size = getSize(dataArray);
         verifySize<EigenArray>(size);
 
-        EigenArray out(size.dataRows, size.dataCols);
+        EigenArray out;
+        if (!staticSize)
+            out.resize(size.dataRows, size.dataCols);
 
         if (isPtrCompatible<EigenArray>(dataArray)) {
             //Use raw buffers if possible
             auto mapped = mapInput<EigenArray>(dataArray);
-            out = mapped;
-        } else if (isPtrCompatible<RowMajorDoubleArray>(dataArray)) {
+			out = mapped;
+        } 
+		else if (isPtrCompatible<RowMajorDoubleArray>(dataArray)) {
             //Default implementation for double numpy array
             auto mapped = mapInput<RowMajorDoubleArray>(dataArray);
             out = mapped.cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
-        } else {
+		}
+		else if (isPtrCompatible<RowMajorLongArray>(dataArray)) {
+			//Default implementation for double numpy array
+			auto mapped = mapInput<RowMajorLongArray>(dataArray);
+			out = mapped.cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
+		}
+		else {
             //Slow method if raw buffers unavailable.
             copyElements(size, data, out);
         }
@@ -121,7 +141,9 @@ EigenArray copyInput(const object& data) {
         EigenSize size = getSizeGeneral(data);
         verifySize<EigenArray>(size);
 
-        EigenArray out(size.dataRows, size.dataCols);
+        EigenArray out;
+        if (!staticSize)
+            out.resize(size.dataRows, size.dataCols);
 
         copyElements(size, data, out);
 
@@ -144,7 +166,7 @@ numeric::array copyOutput(const EigenArray& data) {
     return extract<numeric::array>(arr.copy()); //Copy to pass ownership
 }
 
-template<typename EigenType>
+template <typename EigenType>
 struct eigenarray_from_python_object {
     eigenarray_from_python_object() {
         converter::registry::push_back(&convertible, &construct, type_id<EigenType>());
@@ -159,29 +181,38 @@ struct eigenarray_from_python_object {
     static void construct(PyObject* obj_ptr, converter::rvalue_from_python_stage1_data* data) {
         void* storage = ((converter::rvalue_from_python_storage<EigenType>*)data)->storage.bytes;
         object obj = extract<object>(obj_ptr);
-        new (storage)EigenType(copyInput<EigenType>(obj));
+        new (storage) EigenType(copyInput<EigenType>(obj));
         data->convertible = storage;
     }
 };
 
-template<typename EigenType>
-struct eigenarray_to_python_object
-{
+template <typename EigenType>
+struct eigenarray_to_python_object {
 
-  eigenarray_to_python_object(){
-    to_python_converter<EigenType, eigenarray_to_python_object<EigenType>>();
-  }
+    eigenarray_to_python_object() {
+        to_python_converter<EigenType,
+                            eigenarray_to_python_object<EigenType>>();
+    }
 
-  static PyObject* convert(const EigenType& v)
-  {
-    return copyOutput(v).ptr();
-  }
+    static PyObject* convert(const EigenType& v) {
+		return incref(copyOutput(v).ptr());
+    }
 };
 
-template<typename EigenType> 
+template <typename EigenType>
 void create_eigen_converter() {
+	// check if inner type is in registry already
+	const boost::python::type_info inner_info = type_id<EigenType>();
+	const converter::registration* inner_registration = converter::registry::query(inner_info);
+	if (inner_registration == 0 || inner_registration->m_to_python == 0) {
+		// not already in registry
+		eigenarray_to_python_object<EigenType>();
+	}
+	else {
+		// already in registry
+	}
+
     eigenarray_from_python_object<EigenType>();
-    eigenarray_to_python_object<EigenType>();
 }
 
 void export_eigen_conv() {
