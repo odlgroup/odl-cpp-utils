@@ -41,18 +41,18 @@ struct BoundTexture1D {
 };
 
 template <typename T>
-struct BoundTexture3D {
+struct BoundTexture2D {
     cudaArray_t arr;
     cudaTextureObject_t tex;
-    int3 size;
+    int2 size;
 
-    BoundTexture3D(const T* source,
-                   const int3 size,
+    BoundTexture2D(const T* source,
+                   const int2 size,
                    const cudaTextureAddressMode addressMode,
                    const cudaTextureFilterMode filterMode,
                    const cudaTextureReadMode readMode = cudaReadModeElementType)
         : size(size) {
-        const cudaExtent extent = make_cudaExtent(size.x, size.y, size.z);
+        const cudaExtent extent = make_cudaExtent(size.x, size.y, 0);
 
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
         cudaMalloc3DArray(&arr, &channelDesc, extent);
@@ -74,7 +74,6 @@ struct BoundTexture3D {
         cudaTextureDesc textureDescriptor = {};
         textureDescriptor.addressMode[0] = addressMode;
         textureDescriptor.addressMode[1] = addressMode;
-        textureDescriptor.addressMode[2] = addressMode;
         textureDescriptor.filterMode = filterMode;
         textureDescriptor.readMode = readMode;
         textureDescriptor.normalizedCoords = 0;
@@ -83,11 +82,12 @@ struct BoundTexture3D {
         cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL);
     }
 
-    ~BoundTexture3D() {
+    ~BoundTexture2D() {
         cudaDestroyTextureObject(tex);
         cudaFreeArray(arr);
     }
 };
+
 template <typename T>
 struct BoundTexture3D {
     cudaArray_t arr;

@@ -133,7 +133,6 @@ EigenArray copyInput(const object& data) {
 		}
 		else {
             //Slow method if raw buffers unavailable.
-			printf("copy %d &d\n", size.dataRows, size.dataCols);
             copyElements(size, data, out);
         }
 
