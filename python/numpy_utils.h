@@ -99,20 +99,20 @@ EigenSize getSizeGeneral(const object& data) {
 	return{ dataRows, dataCols, dimension, dataDimension };
 }
 
-template <typename T>
-numeric::array makeArray(size_t size) {
-	npy_intp dims[1] = { size };
-	object obj(handle<>(PyArray_SimpleNew(1, dims, getEnum<T>())));
-	numeric::array arr = extract<numeric::array>(obj);
-	return arr;
+template <typename T, int N>
+object makeArray(npy_intp dims[N]) {
+	PyObject* pyObj = PyArray_SimpleNew(N, dims, getEnum<T>());
+
+    boost::python::handle<> handle( pyObj );
+    boost::python::numeric::array arr( handle );
+
+	return arr.copy();
 }
 
-template <typename T>
-numeric::array makeArray(size_t size1, size_t size2) {
-	npy_intp dims[2] = { size1, size2 };
-	object obj(handle<>(PyArray_SimpleNew(2, dims, getEnum<T>())));
-	numeric::array arr = extract<numeric::array>(obj);
-	return arr;
+template <typename T, typename... Sizes>
+object makeArray(Sizes... sizes) {
+	npy_intp dims[sizeof...(sizes)] = { sizes... };
+	return makeArray(dims);
 }
 
 template <typename T>
