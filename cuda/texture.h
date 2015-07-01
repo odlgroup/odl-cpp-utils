@@ -16,8 +16,8 @@ struct BoundTexture1D {
         : size(size) {
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
         cudaMallocArray(&arr, &channelDesc, size);
-        cudaMemcpy(arr, source, size, cudaMemcpyDeviceToDevice);
-
+        cudaMemcpyToArray(arr, 0, 0, source, size*sizeof(T), cudaMemcpyDeviceToDevice);
+        
         // create texture object
         cudaResourceDesc resourceDescriptor = {};
         resourceDescriptor.resType = cudaResourceTypeArray;
