@@ -16,8 +16,8 @@ struct BoundTexture1D {
                    const cudaTextureReadMode readMode = cudaReadModeElementType)
         : size(size) {
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-        CUDA_SAFE_CALL(MallocArray(&arr, &channelDesc, size));
-        CUDA_SAFE_CALL(MemcpyToArray(arr, 0, 0, source, size*sizeof(T), cudaMemcpyDeviceToDevice));
+        CUDA_SAFE_CALL(cudaMallocArray(&arr, &channelDesc, size));
+        CUDA_SAFE_CALL(cudaMemcpyToArray(arr, 0, 0, source, size*sizeof(T), cudaMemcpyDeviceToDevice));
         
         // create texture object
         cudaResourceDesc resourceDescriptor = {};
@@ -53,18 +53,9 @@ struct BoundTexture2D {
                    const cudaTextureFilterMode filterMode,
                    const cudaTextureReadMode readMode = cudaReadModeElementType)
         : size(size) {
-        const cudaExtent extent = make_cudaExtent(size.x, size.y, 0);
-
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-        cudaMalloc3DArray(&arr, &channelDesc, extent);
-
-        cudaMemcpy3DParms copyParams = {};
-        copyParams.srcPtr = make_cudaPitchedPtr((void*)source, extent.width * sizeof(T),
-                                                extent.width, extent.height);
-        copyParams.dstArray = arr;
-        copyParams.extent = extent;
-        copyParams.kind = cudaMemcpyDeviceToDevice;
-        cudaMemcpy3D(&copyParams);
+        CUDA_SAFE_CALL(cudaMallocArray(&arr, &channelDesc, size.x, size.y));
+        CUDA_SAFE_CALL(cudaMemcpy2DToArray(arr, 0, 0, source, size.x*sizeof(T), size.x*sizeof(T), size.y, cudaMemcpyDeviceToDevice));
 
         // create texture object
         cudaResourceDesc resourceDescriptor = {};
@@ -80,12 +71,12 @@ struct BoundTexture2D {
         textureDescriptor.normalizedCoords = 0;
 
         // Create the texture object
-        cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL);
+        CUDA_SAFE_CALL(cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL));
     }
 
     ~BoundTexture2D() {
-        cudaDestroyTextureObject(tex);
-        cudaFreeArray(arr);
+        CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
+        CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
 };
 
@@ -104,7 +95,7 @@ struct BoundTexture3D {
         const cudaExtent extent = make_cudaExtent(size.x, size.y, size.z);
 
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-        cudaMalloc3DArray(&arr, &channelDesc, extent);
+        CUDA_SAFE_CALL(cudaMalloc3DArray(&arr, &channelDesc, extent));
 
         cudaMemcpy3DParms copyParams = {};
         copyParams.srcPtr = make_cudaPitchedPtr((void*)source, extent.width * sizeof(T),
@@ -112,7 +103,7 @@ struct BoundTexture3D {
         copyParams.dstArray = arr;
         copyParams.extent = extent;
         copyParams.kind = cudaMemcpyDeviceToDevice;
-        cudaMemcpy3D(&copyParams);
+        CUDA_SAFE_CALL(cudaMemcpy3D(&copyParams));
 
         // create texture object
         cudaResourceDesc resourceDescriptor = {};
@@ -129,11 +120,11 @@ struct BoundTexture3D {
         textureDescriptor.normalizedCoords = 0;
 
         // Create the texture object
-        cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL);
+        CUDA_SAFE_CALL(cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL));
     }
 
     ~BoundTexture3D() {
-        cudaDestroyTextureObject(tex);
-        cudaFreeArray(arr);
+        CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
+        CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
 };
