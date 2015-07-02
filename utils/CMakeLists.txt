@@ -3,7 +3,7 @@ set(Headers
     Ellipse.h
     function_traits.h
     OptimizationUtils.h
-    phantom.h
+    Phantom.h
     PrintArray.h
     Projection.h
     RLGeometries.h
@@ -13,7 +13,12 @@ set(Headers
     utilities_export.h)
 
 set(Sources
-    phantom.cpp)
+    dummy.cpp
+    Phantom.cpp)
 	
-
 include_directories ("${PROJECT_SOURCE_DIR}")
+cuda_include_directories ("${PROJECT_SOURCE_DIR}")
+
+CUDA_ADD_LIBRARY(LCRUtilsutils STATIC 
+	${Headers}
+    ${Sources}) 

@@ -6,3 +6,8 @@ set(Sources
 	dummy.cpp)
 
 include_directories ("${PROJECT_SOURCE_DIR}")
+cuda_include_directories ("${PROJECT_SOURCE_DIR}")
+
+CUDA_ADD_LIBRARY(LCRUtilspython STATIC 
+	${Headers}
+    ${Sources}) 

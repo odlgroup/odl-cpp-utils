@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <LCRUtils/cuda/errcheck.h>
 
 template <typename T>
 struct BoundTexture1D {
@@ -15,8 +16,8 @@ struct BoundTexture1D {
                    const cudaTextureReadMode readMode = cudaReadModeElementType)
         : size(size) {
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-        cudaMallocArray(&arr, &channelDesc, size);
-        cudaMemcpyToArray(arr, 0, 0, source, size*sizeof(T), cudaMemcpyDeviceToDevice);
+        CUDA_SAFE_CALL(MallocArray(&arr, &channelDesc, size));
+        CUDA_SAFE_CALL(MemcpyToArray(arr, 0, 0, source, size*sizeof(T), cudaMemcpyDeviceToDevice));
         
         // create texture object
         cudaResourceDesc resourceDescriptor = {};
@@ -31,12 +32,12 @@ struct BoundTexture1D {
         textureDescriptor.normalizedCoords = 0;
 
         // Create the texture object
-        cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL);
+        CUDA_SAFE_CALL(cudaCreateTextureObject(&tex, &resourceDescriptor, &textureDescriptor, NULL));
     }
 
     ~BoundTexture1D() {
-        cudaDestroyTextureObject(tex);
-        cudaFreeArray(arr);
+        CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
+        CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
 };
 
