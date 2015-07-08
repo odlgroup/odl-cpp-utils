@@ -87,3 +87,29 @@ inline Eigen::Map<const Eigen::VectorXd> twoDtooneD(const Eigen::ArrayXXd& data)
     return Eigen::Map<const Eigen::VectorXd>(data.data(), data.size());
 }
 }
+
+namespace std {
+template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+typename Eigen::Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::Scalar*
+begin(Eigen::Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& v) {
+    return v.data();
+}
+
+template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+typename Eigen::Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::Scalar*
+end(Eigen::Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& v) {
+    return v.data() + v.size();
+}
+
+template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+typename Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::Scalar*
+begin(Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& v) {
+    return v.data();
+}
+
+template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+typename Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::Scalar*
+end(Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& v) {
+    return v.data() + v.size();
+}
+} // std
