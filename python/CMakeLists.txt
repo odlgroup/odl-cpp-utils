@@ -11,3 +11,5 @@ cuda_include_directories ("${PROJECT_SOURCE_DIR}")
 CUDA_ADD_LIBRARY(LCRUtilspython STATIC 
 	${Headers}
     ${Sources}) 
+
+set_property(TARGET LCRUtilspython PROPERTY FOLDER LCRUtils)
