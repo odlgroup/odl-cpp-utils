@@ -9,8 +9,7 @@ struct BoundTexture1D {
     cudaTextureObject_t tex;
     size_t size;
 
-    BoundTexture1D() : arr(NULL) {
-    }
+    BoundTexture1D(const BoundTexture1D& that) = delete;
 
     BoundTexture1D(const T* source,
                    const size_t size,
@@ -39,10 +38,8 @@ struct BoundTexture1D {
     }
 
     ~BoundTexture1D() {
-        if (arr) {
-            CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
-            CUDA_SAFE_CALL(cudaFreeArray(arr));
-        }
+        CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
+        CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
 };
 
@@ -52,9 +49,7 @@ struct BoundTexture2D {
     cudaTextureObject_t tex;
     int2 size;
 
-    BoundTexture2D() : arr(NULL) {
-    }
-
+    BoundTexture2D(const BoundTexture2D& that) = delete;
     BoundTexture2D(const T* source,
                    const int2 size,
                    const cudaTextureAddressMode addressMode,
@@ -83,10 +78,8 @@ struct BoundTexture2D {
     }
 
     ~BoundTexture2D() {
-        if (arr) {
-            CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
-            CUDA_SAFE_CALL(cudaFreeArray(arr));
-        }
+        CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
+        CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
 };
 
@@ -138,9 +131,7 @@ struct BoundTexture3D {
     }
 
     ~BoundTexture3D() {
-        if (arr) {
-            CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
-            CUDA_SAFE_CALL(cudaFreeArray(arr));
-        }
+        CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
+        CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
 };
