@@ -9,8 +9,6 @@ struct BoundTexture1D {
     cudaTextureObject_t tex;
     size_t size;
 
-    BoundTexture1D(const BoundTexture1D& that) = delete;
-
     BoundTexture1D(const T* source,
                    const size_t size,
                    const cudaTextureAddressMode addressMode,
@@ -41,6 +39,9 @@ struct BoundTexture1D {
         CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
         CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
+
+    BoundTexture1D& operator=(BoundTexture1D const&) = delete;
+    BoundTexture1D(const BoundTexture1D& that) = delete;
 };
 
 template <typename T>
@@ -49,7 +50,6 @@ struct BoundTexture2D {
     cudaTextureObject_t tex;
     int2 size;
 
-    BoundTexture2D(const BoundTexture2D& that) = delete;
     BoundTexture2D(const T* source,
                    const int2 size,
                    const cudaTextureAddressMode addressMode,
@@ -81,6 +81,9 @@ struct BoundTexture2D {
         CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
         CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
+
+    BoundTexture2D& operator=(BoundTexture2D const&) = delete;
+    BoundTexture2D(const BoundTexture2D& that) = delete;
 };
 
 template <typename T>
@@ -134,4 +137,7 @@ struct BoundTexture3D {
         CUDA_SAFE_CALL(cudaDestroyTextureObject(tex));
         CUDA_SAFE_CALL(cudaFreeArray(arr));
     }
+
+    BoundTexture3D& operator=(BoundTexture3D const&) = delete;
+    BoundTexture3D(const BoundTexture3D& that) = delete;
 };
