@@ -86,7 +86,7 @@ struct BoundTexture2D {
     BoundTexture2D(const BoundTexture2D& that) = delete;
 };
 
-template <typename T, int flag=cudaArrayDefault>
+template <typename T, int flag = cudaArrayDefault>
 struct BoundTexture3D {
     cudaArray_t arr;
     cudaTextureObject_t tex;
@@ -100,7 +100,7 @@ struct BoundTexture3D {
         const cudaExtent extent = make_cudaExtent(size.x, size.y, size.z);
 
         cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-		CUDA_SAFE_CALL(cudaMalloc3DArray(&arr, &channelDesc, extent, flag));
+        CUDA_SAFE_CALL(cudaMalloc3DArray(&arr, &channelDesc, extent, flag));
 
         // create texture object
         cudaResourceDesc resourceDescriptor = {};
@@ -111,7 +111,8 @@ struct BoundTexture3D {
         cudaTextureDesc textureDescriptor = {};
         textureDescriptor.addressMode[0] = addressMode;
         textureDescriptor.addressMode[1] = addressMode;
-        textureDescriptor.addressMode[2] = addressMode;
+        if (flag == cudaArrayDefault)
+            textureDescriptor.addressMode[2] = addressMode;
         textureDescriptor.filterMode = filterMode;
         textureDescriptor.readMode = readMode;
         textureDescriptor.normalizedCoords = 0;
