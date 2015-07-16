@@ -1,4 +1,5 @@
 set(Headers
+	cast.h
     EigenUtils.h
     Ellipse.h
     function_traits.h

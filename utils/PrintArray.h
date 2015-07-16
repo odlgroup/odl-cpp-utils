@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <ostream>
 #include <iostream>
 #include <algorithm> // std::minmax_element

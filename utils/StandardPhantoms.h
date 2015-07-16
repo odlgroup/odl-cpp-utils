@@ -3,7 +3,7 @@
 #include <utils/Ellipse.h>
 #include <vector>
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 namespace SimRec2D {
 /**

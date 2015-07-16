@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <Eigen/Geometry>
 
 namespace SimRec2D {

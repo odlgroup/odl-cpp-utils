@@ -3,7 +3,7 @@
 
 #include <string>
 #include <iostream>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 namespace SimRec2D {
 

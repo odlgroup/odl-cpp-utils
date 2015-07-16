@@ -2,7 +2,7 @@
 
 #include <utils/StandardPhantoms.h>
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 namespace SimRec2D {
 /**

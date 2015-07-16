@@ -4,7 +4,7 @@
 #include <numpy/arrayobject.h>
 #include <Python.h>
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 #include <stdexcept>
 #include <string>
