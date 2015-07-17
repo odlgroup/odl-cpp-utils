@@ -1,6 +1,6 @@
-#include <utils/Phantom.h>
-#include <utils/EigenUtils.h>
-#include <utils/PrintArray.h>
+#include <LCRUtils/utils/Phantom.h>
+#include <LCRUtils/utils/EigenUtils.h>
+#include <LCRUtils/utils/PrintArray.h>
 
 #include <stdexcept> // std::invalid_argument
 #include <vector>

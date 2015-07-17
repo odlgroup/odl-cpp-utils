@@ -1,6 +1,6 @@
-#include <utils/Phantom.h>
-#include <utils/EigenUtils.h>
-#include <utils/Ellipse.h>
+#include <LCRUtils/utils/Phantom.h>
+#include <LCRUtils/utils/EigenUtils.h>
+#include <LCRUtils/utils/Ellipse.h>
 
 #include <vector>
 #include <iostream>
@@ -50,7 +50,7 @@ ArrayXXd phantom(Vector2i size, PhantomType type, double edgeWidth) {
     ArrayXXd data = ArrayXXd::Zero(size[0], size[1]);
 
     //Add all ellipses
-	for (auto&& ellipse : getPhantomParameters(type)) {
+    for (auto&& ellipse : getPhantomParameters(type)) {
         addEllipse(ellipse, xPos, yPos, edgeWidth, data);
     }
 
