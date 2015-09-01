@@ -26,25 +26,36 @@ makeDefinition(double, NPY_DOUBLE);
 makeDefinition(long double, NPY_LONGDOUBLE);
 makeDefinition(bool, NPY_BOOL);
 makeDefinition(char, NPY_BYTE);
+makeDefinition(signed char, NPY_BYTE);
 makeDefinition(unsigned char, NPY_UBYTE);
-makeDefinition(short, NPY_SHORT);
+makeDefinition(signed short, NPY_SHORT);
 makeDefinition(unsigned short, NPY_USHORT);
-makeDefinition(int, NPY_INT);
+makeDefinition(signed int, NPY_INT);
 makeDefinition(unsigned int, NPY_UINT);
-makeDefinition(long, NPY_LONG);
+makeDefinition(signed long, NPY_LONG);
 makeDefinition(unsigned long, NPY_ULONG);
-makeDefinition(long long, NPY_LONGLONG);
+makeDefinition(signed long long, NPY_LONGLONG);
 makeDefinition(unsigned long long, NPY_ULONGLONG);
 #undef makeDefinition
 
 template <typename T>
-bool isType(const numeric::array& data) {
+bool isTypeCompatible(const numeric::array& data) {
 	PyArrayObject* a = (PyArrayObject*)data.ptr();
 
 	if (a == NULL)
 		return false;
 
-	return PyArray_TYPE(a) == getEnum<T>();
+    int data_array_type = PyArray_TYPE(a);
+    int T_array_type = getEnum<T>();
+
+    if (data_array_type == T_array_type)
+        return true;
+    else if (data_array_type == NPY_LONG && T_array_type == NPY_INT && sizeof(int) == sizeof(long)) //We handle the case with long being equal to int on windows
+        return true;
+    else if (data_array_type == NPY_INT && T_array_type == NPY_LONG && sizeof(int) == sizeof(long))
+        return true;
+    else
+        return false;
 }
 
 struct EigenSize {
@@ -123,8 +134,8 @@ T* getDataPtr(const numeric::array& data) {
 		throw std::invalid_argument("Could not get NP array.");
 
 	//Check that type is correct
-	if (!isType<T>(data))
-		throw std::invalid_argument(("Expected element type " + std::string(typeid(T).name()) + " " + PyArray_DESCR(a)->type).c_str());
+    if (!isTypeCompatible<T>(data))
+		throw std::invalid_argument(("Expected element type " + std::string(typeid(T).name()) + ", got " + PyArray_DESCR(a)->type).c_str());
 
 	T* p = (T*)PyArray_DATA(a);
 

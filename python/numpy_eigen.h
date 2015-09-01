@@ -46,7 +46,7 @@ template <typename EigenArray>
 bool isPtrCompatible(const numeric::array& numpyArray) {
     typedef typename EigenArray::Scalar Scalar;
 
-    if (!isType<Scalar>(numpyArray))
+    if (!isTypeCompatible<Scalar>(numpyArray))
         return false;
 
     if (!iscontiguous(numpyArray))
