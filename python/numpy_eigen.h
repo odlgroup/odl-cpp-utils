@@ -170,9 +170,13 @@ struct eigenarray_from_python_object {
     }
 
     static void* convertible(PyObject* obj_ptr) {
-        auto ext = extract<numeric::array>(obj_ptr);
-        if (!ext.check()) return 0;
-        return obj_ptr;
+        auto ext_arr = extract<boost::python::numeric::array>(obj_ptr);
+        auto ext_list = extract<boost::python::list>(obj_ptr);
+        auto ext_tuple = extract<boost::python::tuple>(obj_ptr);
+        if (ext_arr.check() || ext_list.check() || ext_tuple.check())
+            return obj_ptr;
+        else
+            return 0;
     }
 
     static void construct(PyObject* obj_ptr, converter::rvalue_from_python_stage1_data* data) {
@@ -203,8 +207,8 @@ void create_eigen_converter() {
     const converter::registration* inner_registration = converter::registry::query(inner_info);
     if (inner_registration == 0 || inner_registration->m_to_python == 0) {
         // not already in registry
-		eigenarray_to_python_object<EigenType>();
-		eigenarray_from_python_object<EigenType>();
+        eigenarray_to_python_object<EigenType>();
+        eigenarray_from_python_object<EigenType>();
     } else {
         // already in registry
     }
@@ -218,20 +222,20 @@ void instantiate_eigen_conv() {
 
 template <typename Scalar, int rows>
 void instantiate_eigen_conv() {
-	instantiate_eigen_conv<Scalar, rows, Eigen::Dynamic>();
-	instantiate_eigen_conv<Scalar, rows, 1>();
+    instantiate_eigen_conv<Scalar, rows, Eigen::Dynamic>();
+    instantiate_eigen_conv<Scalar, rows, 1>();
     instantiate_eigen_conv<Scalar, rows, 2>();
-	instantiate_eigen_conv<Scalar, rows, 3>();
-	instantiate_eigen_conv<Scalar, rows, 4>();
+    instantiate_eigen_conv<Scalar, rows, 3>();
+    instantiate_eigen_conv<Scalar, rows, 4>();
 }
 
 template <typename Scalar>
 void instantiate_eigen_conv() {
-	instantiate_eigen_conv<Scalar, Eigen::Dynamic>();
-	instantiate_eigen_conv<Scalar, 1>();
+    instantiate_eigen_conv<Scalar, Eigen::Dynamic>();
+    instantiate_eigen_conv<Scalar, 1>();
     instantiate_eigen_conv<Scalar, 2>();
-	instantiate_eigen_conv<Scalar, 3>();
-	instantiate_eigen_conv<Scalar, 4>();
+    instantiate_eigen_conv<Scalar, 3>();
+    instantiate_eigen_conv<Scalar, 4>();
 }
 
 //Create converters from python to C++ for eigen.
