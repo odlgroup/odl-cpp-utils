@@ -16,117 +16,128 @@
 using namespace boost::python;
 
 template <typename T>
-int getEnum();
+inline int getEnum();
 
 #define makeDefinition(TYPE, NAME) \
     template <>                    \
-    int getEnum<TYPE>() { return NAME; }
+    inline int getEnum<TYPE>() {   \
+        return NAME;               \
+    }
 makeDefinition(float, NPY_FLOAT);
 makeDefinition(double, NPY_DOUBLE);
 makeDefinition(long double, NPY_LONGDOUBLE);
 makeDefinition(bool, NPY_BOOL);
 makeDefinition(char, NPY_BYTE);
+makeDefinition(signed char, NPY_BYTE);
 makeDefinition(unsigned char, NPY_UBYTE);
-makeDefinition(short, NPY_SHORT);
+makeDefinition(signed short, NPY_SHORT);
 makeDefinition(unsigned short, NPY_USHORT);
-makeDefinition(int, NPY_INT);
+makeDefinition(signed int, NPY_INT);
 makeDefinition(unsigned int, NPY_UINT);
-makeDefinition(long, NPY_LONG);
+makeDefinition(signed long, NPY_LONG);
 makeDefinition(unsigned long, NPY_ULONG);
-makeDefinition(long long, NPY_LONGLONG);
+makeDefinition(signed long long, NPY_LONGLONG);
 makeDefinition(unsigned long long, NPY_ULONGLONG);
 #undef makeDefinition
 
 template <typename T>
-bool isType(const numeric::array& data) {
-	PyArrayObject* a = (PyArrayObject*)data.ptr();
+bool isTypeCompatible(const numeric::array& data) {
+    PyArrayObject* a = (PyArrayObject*)data.ptr();
 
-	if (a == NULL)
-		return false;
+    if (a == NULL) return false;
 
-	return PyArray_TYPE(a) == getEnum<T>();
+    int data_array_type = PyArray_TYPE(a);
+    int T_array_type = getEnum<T>();
+
+    if (data_array_type == T_array_type)
+        return true;
+    else if (data_array_type == NPY_LONG && T_array_type == NPY_INT &&
+             sizeof(int) == sizeof(long))  // We handle the case with long being
+                                           // equal to int on windows
+        return true;
+    else if (data_array_type == NPY_INT && T_array_type == NPY_LONG &&
+             sizeof(int) == sizeof(long))
+        return true;
+    else
+        return false;
 }
 
 struct EigenSize {
-	size_t dataRows, dataCols, dimension, datadimension;
+    size_t dataRows, dataCols, dimension, datadimension;
 };
 
-EigenSize getSize(const numeric::array& data) {
-	const tuple shape = extract<tuple>(data.attr("shape"));
-	const size_t datadimension = len(shape);
-	size_t dimension = datadimension;
+inline EigenSize getSize(const numeric::array& data) {
+    const tuple shape = extract<tuple>(data.attr("shape"));
+    const size_t datadimension = len(shape);
+    size_t dimension = datadimension;
 
-	size_t dataRows, dataCols;
-	if (datadimension == 1) {
-		dataRows = extract<int>(shape[0]);
-		dataCols = 1;
-	}
-	else if (datadimension == 2) {
-		dataRows = extract<int>(shape[0]);
-		dataCols = extract<int>(shape[1]);
-		
-        if (dataRows == 1 || dataCols == 1)
-			dimension = 1;
-	}
-	else
-		throw std::invalid_argument("Dimension is not 1 or 2");
+    size_t dataRows, dataCols;
+    if (datadimension == 1) {
+        dataRows = extract<int>(shape[0]);
+        dataCols = 1;
+    } else if (datadimension == 2) {
+        dataRows = extract<int>(shape[0]);
+        dataCols = extract<int>(shape[1]);
 
-	return{ dataRows, dataCols, dimension, datadimension };
+        if (dataRows == 1 || dataCols == 1) dimension = 1;
+    } else
+        throw std::invalid_argument("Dimension is not 1 or 2");
+
+    return {dataRows, dataCols, dimension, datadimension};
 }
 
-EigenSize getSizeGeneral(const object& data) {
-	size_t dataRows = 1;
-	size_t dataCols = 1;
-	size_t dimension = 1;
-	size_t dataDimension = 1;
+inline EigenSize getSizeGeneral(const object& data) {
+    size_t dataRows = 1;
+    size_t dataCols = 1;
+    size_t dimension = 1;
+    size_t dataDimension = 1;
 
-	try {
-		dataRows = len(data);
-		if (PyObject_HasAttrString(object(data[0]).ptr(), "len")) {
-			dataCols = len(data[0]);
-			dataDimension = 2;
+    try {
+        dataRows = len(data);
+        if (PyObject_HasAttrString(object(data[0]).ptr(), "len")) {
+            dataCols = len(data[0]);
+            dataDimension = 2;
 
-			//TODO check that all others are equal
-		}
-	}
-	catch (const error_already_set&) {
-		throw std::invalid_argument("Data is not of array type");
-	}
+            // TODO check that all others are equal
+        }
+    } catch (const error_already_set&) {
+        throw std::invalid_argument("Data is not of array type");
+    }
 
-	if (dataRows > 1 && dataCols > 1)
-		dimension = 2;
+    if (dataRows > 1 && dataCols > 1) dimension = 2;
 
-	return{ dataRows, dataCols, dimension, dataDimension };
+    return {dataRows, dataCols, dimension, dataDimension};
 }
 
 template <typename T, int N>
-object makeArray(npy_intp dims[N]) {
-	PyObject* pyObj = PyArray_SimpleNew(N, dims, getEnum<T>());
+boost::python::numeric::array makeArray(npy_intp dims[N]) {
+    PyObject* pyObj = PyArray_SimpleNew(N, dims, getEnum<T>());
 
-    boost::python::handle<> handle( pyObj );
-    boost::python::numeric::array arr( handle );
+    boost::python::handle<> handle(pyObj);
+    boost::python::numeric::array arr(handle);
 
-	return arr.copy();
+    return extract<boost::python::numeric::array>(arr.copy());
 }
 
 template <typename T, typename... Sizes>
-object makeArray(Sizes... sizes) {
-	npy_intp dims[sizeof...(sizes)] = { sizes... };
-	return makeArray(dims);
+boost::python::numeric::array makeArray(Sizes... sizes) {
+    npy_intp dims[sizeof...(sizes)] = {sizes...};
+    return makeArray<T, sizeof...(sizes)>(dims);
 }
 
 template <typename T>
 T* getDataPtr(const numeric::array& data) {
-	PyArrayObject* a = (PyArrayObject*)data.ptr();
+    PyArrayObject* a = (PyArrayObject*)data.ptr();
 
-	if (a == NULL)
-		throw std::invalid_argument("Could not get NP array.");
+    if (a == NULL) throw std::invalid_argument("Could not get NP array.");
 
-	//Check that type is correct
-	if (!isType<T>(data))
-		throw std::invalid_argument(("Expected element type " + std::string(typeid(T).name()) + " " + PyArray_DESCR(a)->type).c_str());
+    // Check that type is correct
+    if (!isTypeCompatible<T>(data))
+        throw std::invalid_argument(("Expected element type " +
+                                     std::string(typeid(T).name()) + ", got " +
+                                     PyArray_DESCR(a)->type).c_str());
 
-	T* p = (T*)PyArray_DATA(a);
+    T* p = (T*)PyArray_DATA(a);
 
-	return p;
+    return p;
 }
