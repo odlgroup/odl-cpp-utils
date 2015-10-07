@@ -1,6 +1,7 @@
 set(Headers
     cuda_utils.h
     cutil_math.h
+    CudaMemory.h
     CuVector.h
     disableThrustWarnings.h
     enableThrustWarnings.h
@@ -11,11 +12,14 @@ set(Headers
 set(Sources
 	dummy.cpp)
 
+set(CudaFiles
+	CudaMemory.cu)    
 include_directories ("${PROJECT_SOURCE_DIR}")
 cuda_include_directories ("${PROJECT_SOURCE_DIR}")
 
 CUDA_ADD_LIBRARY(LCRUtilscuda STATIC 
 	${Headers}
-    ${Sources}) 
+    ${Sources}
+    ${CudaFiles}) 
 
 set_property(TARGET LCRUtilscuda PROPERTY FOLDER LCRUtils)

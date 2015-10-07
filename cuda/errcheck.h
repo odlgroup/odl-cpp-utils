@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+
 #define CUDA_SAFE_CALL(ans)                         \
     do {                                            \
         gpuAssert((ans), __FILE__, __LINE__, #ans); \
