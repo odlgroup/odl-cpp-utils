@@ -1,5 +1,5 @@
-#include <LCRUtils/cuda/CudaMemory.h>
-#include <LCRUtils/cuda/errcheck.h>
+#include <odl_cpp_utils/cuda/CudaMemory.h>
+#include <odl_cpp_utils/cuda/errcheck.h>
 #include <stdint.h>
 
 template <typename T>

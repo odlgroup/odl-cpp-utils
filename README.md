@@ -1,7 +1,7 @@
-LCRUtils
-========
+odl-cpp-utils
+=============
 
-C++ utility functions for ODL (and other projects)
+Utility functions for the ODL C++ backend (and other projects)
 
 License
 -------

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <LCRUtils/utils/StandardPhantoms.h>
+#include <odl_cpp_utils/utils/StandardPhantoms.h>
 
 #include <Eigen/Core>
 

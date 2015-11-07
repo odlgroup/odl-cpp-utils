@@ -13,13 +13,13 @@ set(Sources
 	dummy.cpp)
 
 set(CudaFiles
-	CudaMemory.cu)    
+	CudaMemory.cu)
 include_directories ("${PROJECT_SOURCE_DIR}")
 cuda_include_directories ("${PROJECT_SOURCE_DIR}")
 
-CUDA_ADD_LIBRARY(LCRUtilscuda STATIC 
+CUDA_ADD_LIBRARY(odlcpputils_cuda STATIC
 	${Headers}
     ${Sources}
-    ${CudaFiles}) 
+    ${CudaFiles})
 
-set_property(TARGET LCRUtilscuda PROPERTY FOLDER LCRUtils)
+set_property(TARGET odlcpputils_cuda PROPERTY FOLDER odl_cpp_utils)

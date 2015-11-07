@@ -11,7 +11,7 @@
 #include <typeinfo>
 #include <numeric>
 
-#include <LCRUtils/python/numpy_utils.h>
+#include <odl_cpp_utils/python/numpy_utils.h>
 
 using namespace boost::python;
 

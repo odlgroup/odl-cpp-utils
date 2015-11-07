@@ -8,8 +8,8 @@ set(Sources
 include_directories ("${PROJECT_SOURCE_DIR}")
 cuda_include_directories ("${PROJECT_SOURCE_DIR}")
 
-CUDA_ADD_LIBRARY(LCRUtilstest STATIC 
+CUDA_ADD_LIBRARY(odlcpputils_test STATIC
 	${Headers}
-    ${Sources}) 
+    ${Sources})
 
-set_property(TARGET LCRUtilstest PROPERTY FOLDER LCRUtils)
+set_property(TARGET odlcpputils_test PROPERTY FOLDER odl_cpp_utils)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <LCRUtils/utils/Ellipse.h>
+#include <odl_cpp_utils/utils/Ellipse.h>
 #include <vector>
 
 #include <Eigen/Core>

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <cuda_runtime.h>
-#include <LCRUtils/cuda/errcheck.h>
+#include <odl_cpp_utils/cuda/errcheck.h>
 
 template <typename T>
 struct BoundTexture1D {

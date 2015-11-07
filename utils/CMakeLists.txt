@@ -16,12 +16,12 @@ set(Headers
 set(Sources
     dummy.cpp
     Phantom.cpp)
-	
+
 include_directories ("${PROJECT_SOURCE_DIR}")
 cuda_include_directories ("${PROJECT_SOURCE_DIR}")
 
-CUDA_ADD_LIBRARY(LCRUtilsutils STATIC 
+CUDA_ADD_LIBRARY(odlcpputils_utils STATIC
 	${Headers}
-    ${Sources}) 
+    ${Sources})
 
-set_property(TARGET LCRUtilsutils PROPERTY FOLDER LCRUtils)
+set_property(TARGET odlcpputils_utils PROPERTY FOLDER odl_cpp_utils)
