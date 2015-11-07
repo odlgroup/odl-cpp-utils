@@ -1,7 +1,7 @@
 LCRUtils
 ========
 
-Utility functions for LCR
+C++ utility functions for ODL (and other projects)
 
 License
 -------
