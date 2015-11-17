@@ -121,7 +121,7 @@ boost::python::numeric::array makeArray(npy_intp dims[N]) {
     return extract<boost::python::numeric::array>(arr.copy());
 }
 
-#if ODL_MSVC_2012
+#ifdef ODL_MSVC_2012
 template <typename T>
 boost::python::numeric::array makeArray(npy_intp size) {
     npy_intp dims[1] = {size};
