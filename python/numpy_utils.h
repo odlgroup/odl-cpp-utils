@@ -83,7 +83,8 @@ inline EigenSize getSize(const numeric::array& data) {
     } else
         throw std::invalid_argument("Dimension is not 1 or 2");
 
-    return {dataRows, dataCols, dimension, datadimension};
+    EigenSize result = {dataRows, dataCols, dimension, datadimension};
+    return result;
 }
 
 inline EigenSize getSizeGeneral(const object& data) {
@@ -106,7 +107,8 @@ inline EigenSize getSizeGeneral(const object& data) {
 
     if (dataRows > 1 && dataCols > 1) dimension = 2;
 
-    return {dataRows, dataCols, dimension, dataDimension};
+    EigenSize result = {dataRows, dataCols, dimension, dataDimension};
+    return result;
 }
 
 template <typename T, int N>
@@ -119,11 +121,30 @@ boost::python::numeric::array makeArray(npy_intp dims[N]) {
     return extract<boost::python::numeric::array>(arr.copy());
 }
 
+#if ODL_MSVC_2012
+template <typename T>
+boost::python::numeric::array makeArray(npy_intp size) {
+    npy_intp dims[1] = {size};
+    return makeArray<T, 1>(dims);
+}
+template <typename T>
+boost::python::numeric::array makeArray(npy_intp size_1, npy_intp size_2) {
+    npy_intp dims[2] = {size_1, size_2};
+    return makeArray<T, 2>(dims);
+}
+template <typename T>
+boost::python::numeric::array makeArray(npy_intp size_1, npy_intp size_2,
+                                        npy_intp size_3) {
+    npy_intp dims[3] = {size_1, size_2, size_3};
+    return makeArray<T, 3>(dims);
+}
+#else
 template <typename T, typename... Sizes>
 boost::python::numeric::array makeArray(Sizes... sizes) {
     npy_intp dims[sizeof...(sizes)] = {sizes...};
     return makeArray<T, sizeof...(sizes)>(dims);
 }
+#endif
 
 template <typename T>
 T* getDataPtr(const numeric::array& data) {
