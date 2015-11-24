@@ -52,11 +52,18 @@ bool isTypeCompatible(const numeric::array& data) {
     if (data_array_type == T_array_type)
         return true;
     else if (data_array_type == NPY_LONG && T_array_type == NPY_INT &&
-             sizeof(int) == sizeof(long))  // We handle the case with long being
-                                           // equal to int on windows
+             sizeof(int) == sizeof(long)) // We handle the case with long being
+                                          // equal to int on windows
         return true;
     else if (data_array_type == NPY_INT && T_array_type == NPY_LONG &&
              sizeof(int) == sizeof(long))
+        return true;
+    else if (data_array_type == NPY_ULONG && T_array_type == NPY_UINT &&
+             sizeof(unsigned int) == sizeof(unsigned long)) // We handle the case with long being
+                                                            // equal to int on windows
+        return true;
+    else if (data_array_type == NPY_UINT && T_array_type == NPY_ULONG &&
+             sizeof(unsigned int) == sizeof(unsigned long))
         return true;
     else
         return false;
@@ -156,7 +163,8 @@ T* getDataPtr(const numeric::array& data) {
     if (!isTypeCompatible<T>(data))
         throw std::invalid_argument(("Expected element type " +
                                      std::string(typeid(T).name()) + ", got " +
-                                     PyArray_DESCR(a)->type).c_str());
+                                     PyArray_DESCR(a)->type)
+                                        .c_str());
 
     T* p = (T*)PyArray_DATA(a);
 
