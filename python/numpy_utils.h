@@ -17,10 +17,9 @@ namespace py = pybind11;
 template <typename T>
 inline int getEnum();
 
-#define makeDefinition(TYPE, NAME) \
-    template <>                    \
-    inline int getEnum<TYPE>() {   \
-        return NAME;               \
+#define makeDefinition(TYPE, NAME)           \
+    template <> inline int getEnum<TYPE>() { \
+        return NAME;                         \
     }
 makeDefinition(float, NPY_FLOAT);
 makeDefinition(double, NPY_DOUBLE);
@@ -73,7 +72,7 @@ struct EigenSize {
 };
 
 inline EigenSize getSize(py::array& data) {
-	const std::vector<size_t> shape = data.request().shape;
+    const std::vector<size_t> shape = data.request().shape;
     const size_t datadimension = shape.size();
     size_t dimension = datadimension;
 
@@ -102,7 +101,7 @@ inline EigenSize getSizeGeneral(py::object& data) {
     try {
         dataRows = py::cast<size_t>(data.attr("__len__"));
         if (PyObject_HasAttrString(py::object(data[0]).ptr(), "__len__")) {
-			dataCols = py::cast<size_t>(py::object(data[0]).attr("__len__"));
+            dataCols = py::cast<size_t>(py::object(data[0]).attr("__len__"));
             dataDimension = 2;
 
             // TODO check that all others are equal
@@ -121,7 +120,7 @@ template <typename T, int N>
 py::array makeArray(npy_intp dims[N]) {
     PyObject* pyObj = PyArray_SimpleNew(N, dims, getEnum<T>());
 
-	py::array arr(pyObj, false);
+    py::array arr(pyObj, true);
 
     return arr;
 }
@@ -139,7 +138,7 @@ py::array makeArray(npy_intp size_1, npy_intp size_2) {
 }
 template <typename T>
 py::array makeArray(npy_intp size_1, npy_intp size_2,
-                                        npy_intp size_3) {
+                    npy_intp size_3) {
     npy_intp dims[3] = {size_1, size_2, size_3};
     return makeArray<T, 3>(dims);
 }
