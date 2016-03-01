@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include <cudautils/cutil_math.h>
-
+#include <odl_cpp_utils/cuda/cutil_math.h>
 
 inline std::ostream& operator<<(std::ostream& stream, const float2& vec) {
 	return stream << vec.x << ", " << vec.y;
