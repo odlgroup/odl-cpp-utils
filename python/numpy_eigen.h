@@ -38,32 +38,26 @@ void verifySize(const EigenSize& size) {
     }
 }
 
-bool iscontiguous(const numeric::array& arr) {
-    return PyArray_ISCONTIGUOUS(reinterpret_cast<PyArrayObject*>(arr.ptr()));
-}
-
 template <typename EigenArray>
 bool isPtrCompatible(const numeric::array& numpyArray) {
     typedef typename EigenArray::Scalar Scalar;
 
-    if (!isTypeCompatible<Scalar>(numpyArray))
+    if (!isTypeCompatible<Scalar>(numpyArray)) {
         return false;
-
-    if (!iscontiguous(numpyArray))
-        return false;
-
+    }
     int flags = PyArray_FLAGS((PyArrayObject*)numpyArray.ptr());
     if (!(flags & NPY_ARRAY_ALIGNED)) {
         return false;
     }
 
     //Verify order
-    if ((flags & NPY_ARRAY_F_CONTIGUOUS) && !EigenArray::IsRowMajor)
+    if ((flags & NPY_ARRAY_F_CONTIGUOUS) && !EigenArray::IsRowMajor) {
         return true;
-    else if ((flags & NPY_ARRAY_C_CONTIGUOUS) && EigenArray::IsRowMajor)
+    } else if ((flags & NPY_ARRAY_C_CONTIGUOUS) && EigenArray::IsRowMajor) {
         return true;
-    else
+    } else {
         return false;
+    }
 }
 
 template <typename EigenArray>
@@ -94,6 +88,17 @@ void copyElements(const EigenSize& size, const object& in, EigenArray& out) {
     }
 }
 
+template <typename InputType, typename EigenArray>
+bool copy_if_valid(EigenArray& out, const numeric::array& dataArray) {
+    typedef typename EigenArray::Scalar Scalar;
+    if (isPtrCompatible<InputType>(dataArray)) {
+        auto mapped = mapInput<InputType>(dataArray);
+        out = mapped.template cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
+        return true;
+    } else
+        return false;
+}
+
 template <typename EigenArray>
 EigenArray copyInput(const object& data) {
     static const int rowsAtCompile = EigenArray::RowsAtCompileTime;
@@ -102,6 +107,8 @@ EigenArray copyInput(const object& data) {
     typedef typename EigenArray::Scalar Scalar;
     typedef typename Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorDoubleArray;
     typedef typename Eigen::Array<long, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> RowMajorLongArray;
+    typedef typename Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> ColMajorDoubleArray;
+    typedef typename Eigen::Array<long, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> ColMajorLongArray;
 
     extract<numeric::array> asNumeric(data);
     if (asNumeric.check()) {
@@ -125,8 +132,14 @@ EigenArray copyInput(const object& data) {
             auto mapped = mapInput<RowMajorDoubleArray>(dataArray);
             out = mapped.cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
         } else if (isPtrCompatible<RowMajorLongArray>(dataArray)) {
-            //Default implementation for double numpy array
+            //Default implementation for long numpy array
             auto mapped = mapInput<RowMajorLongArray>(dataArray);
+            out = mapped.cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
+        } else if (isPtrCompatible<ColMajorDoubleArray>(dataArray)) {
+            auto mapped = mapInput<ColMajorDoubleArray>(dataArray);
+            out = mapped.cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
+        } else if (isPtrCompatible<ColMajorLongArray>(dataArray)) {
+            auto mapped = mapInput<ColMajorLongArray>(dataArray);
             out = mapped.cast<Scalar>(); //If out type does not equal in type, perform a cast. If equal this is assignment.
         } else {
             //Slow method if raw buffers unavailable.
