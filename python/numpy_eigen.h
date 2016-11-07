@@ -10,6 +10,7 @@
 #include <string>
 #include <typeinfo>
 #include <numeric>
+#include <stdint.h>
 
 #include <odl_cpp_utils/python/numpy_utils.h>
 
@@ -255,5 +256,6 @@ void instantiate_eigen_conv() {
 void export_eigen_conv() {
     instantiate_eigen_conv<double>();
     instantiate_eigen_conv<float>();
-    instantiate_eigen_conv<int>();
+    instantiate_eigen_conv<int32_t>();
+    instantiate_eigen_conv<int64_t>();
 }
